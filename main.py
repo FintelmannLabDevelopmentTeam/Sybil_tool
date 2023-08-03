@@ -1,5 +1,6 @@
 import os
 import subprocess
+import appscript
 import shutil
 
 import pandas as pd
@@ -12,6 +13,7 @@ from pyfiglet import figlet_format
 
 import tkinter as tk
 from tkinter import filedialog
+
 
 
 def convert_dicomdir_to_dcm(dicomdir_path, dcm_path):
@@ -212,18 +214,16 @@ root.withdraw()
 print(figlet_format("Sybil"))
 print("A validated deep learning model")
 
+# Start up
+print("Starting up...")
+
+if subprocess.check_output("docker ps -q --filter ancestor=mitjclinic/sybil:mgh", shell=True, text=True) == "":
+    appscript.app("Terminal").do_script("Docker run -p 127.0.0.1:5000:5000 mitjclinic/sybil:mgh")
+
 # Version check
 command = "docker exec `docker ps -q --filter ancestor=mitjclinic/sybil:mgh` bash -c 'python -c\"import sybil; print(sybil.__version__)\"'"
 sybil_version = subprocess.check_output(command, shell=True, text=True)
 print("Version: " + sybil_version)
-
-# Start up
-print("Starting up...")
-
-try:
-    subprocess.check_output("Docker run -p 127.0.0.1:5000:5000 mitjclinic/sybil:mgh", shell=True, text=True)
-except subprocess.CalledProcessError as e:
-    print(e)
 
 print("")
 

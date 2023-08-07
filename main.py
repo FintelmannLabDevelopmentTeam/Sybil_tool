@@ -2,6 +2,7 @@ import os
 import subprocess
 import appscript
 import shutil
+import platform
 
 import pandas as pd
 import json
@@ -208,6 +209,8 @@ def iteration():
     return True
 
 
+os = platform.system()
+
 root = tk.Tk()
 root.withdraw()
 
@@ -218,10 +221,16 @@ print("A validated deep learning model")
 print("Starting up...")
 
 if subprocess.check_output("docker ps -q --filter ancestor=mitjclinic/sybil:mgh", shell=True, text=True) == "":
-    appscript.app("Terminal").do_script("Docker run -p 127.0.0.1:5000:5000 mitjclinic/sybil:mgh")
+    if os == "Windows":
+        subprocess.Popen("Docker run -p 127.0.0.1:5000:5000 mitjclinic/sybil:mgh")
+    elif os == "Darwin":
+        appscript.app("Terminal").do_script("Docker run -p 127.0.0.1:5000:5000 mitjclinic/sybil:mgh")
 
 # Version check
-command = "docker exec `docker ps -q --filter ancestor=mitjclinic/sybil:mgh` bash -c 'python -c\"import sybil; print(sybil.__version__)\"'"
+if os == "Windows":
+    command = "docker exec $(docker ps -q --filter ancestor=mitjclinic/sybil:mgh) bash -c \"python -c \\\"import sybil; print(sybil.__version__)\\\"\""
+elif os == "Darwin":
+    command = "docker exec `docker ps -q --filter ancestor=mitjclinic/sybil:mgh` bash -c 'python -c\"import sybil; print(sybil.__version__)\"'"
 sybil_version = subprocess.check_output(command, shell=True, text=True)
 print("Version: " + sybil_version)
 

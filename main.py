@@ -236,7 +236,6 @@ print("Version: " + sybil_version)
 
 print("")
 
-
 while iteration():
     pass
 

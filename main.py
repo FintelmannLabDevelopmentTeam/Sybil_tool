@@ -140,10 +140,8 @@ def iteration():
         return False
     print("Selected input path: " + input_path)
 
-    output_folder = filedialog.askdirectory()
-    if output_folder == "":
-        return False
-    print("Selected path for the output CSV: " + output_folder)
+    output_folder = os.path.dirname(input_path)
+    print("Folder for the output CSV: " + output_folder)
 
     for item in os.listdir(input_path):
         item_path = os.path.join(input_path, item)
@@ -178,15 +176,18 @@ def iteration():
                         series_path = os.path.join(exam_path, series)
                         series_list.append(series_path)
 
-            series_no = "b"
-            while series_no != "a" and not series_no.isnumeric():
-                series_no = input("Select series (type 'a' to select all):  ")
-
-            if series_no == "a":
-                input_path = dcm_path
+            if len(series_list) == 1:
+                input_path = series_list[0]
             else:
-                series_no = int(series_no) - 1
-                input_path = series_list[series_no]
+                series_no = "b"
+                while series_no != "a" and not series_no.isnumeric():
+                    series_no = input("Select series (type 'a' to select all):  ")
+
+                if series_no == "a":
+                    input_path = dcm_path
+                else:
+                    series_no = int(series_no) - 1
+                    input_path = series_list[series_no]
 
     p = pd.DataFrame(
         columns=["folderName", "statusCode", "pred1", "pred2", "pred3", "pred4", "pred5", "pred6", "comment",
@@ -209,7 +210,7 @@ def iteration():
     return True
 
 
-os = platform.system()
+os_system = platform.system()
 
 root = tk.Tk()
 root.withdraw()
@@ -221,15 +222,15 @@ print("A validated deep learning model")
 print("Starting up...")
 
 if subprocess.check_output("docker ps -q --filter ancestor=mitjclinic/sybil:mgh", shell=True, text=True) == "":
-    if os == "Windows":
+    if os_system == "Windows":
         subprocess.Popen("Docker run -p 127.0.0.1:5000:5000 mitjclinic/sybil:mgh")
-    elif os == "Darwin":
+    elif os_system == "Darwin":
         appscript.app("Terminal").do_script("Docker run -p 127.0.0.1:5000:5000 mitjclinic/sybil:mgh")
 
 # Version check
-if os == "Windows":
+if os_system == "Windows":
     command = "docker exec $(docker ps -q --filter ancestor=mitjclinic/sybil:mgh) bash -c \"python -c \\\"import sybil; print(sybil.__version__)\\\"\""
-elif os == "Darwin":
+elif os_system == "Darwin":
     command = "docker exec `docker ps -q --filter ancestor=mitjclinic/sybil:mgh` bash -c 'python -c\"import sybil; print(sybil.__version__)\"'"
 sybil_version = subprocess.check_output(command, shell=True, text=True)
 print("Version: " + sybil_version)
@@ -241,3 +242,5 @@ while iteration():
 
 print("")
 input("Press enter to exit")
+
+exit()

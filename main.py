@@ -3,12 +3,12 @@ import subprocess
 import appscript
 import shutil
 import platform
+import time
 
 import pandas as pd
 import json
 
 import pydicom
-from pydicom.fileset import FileSet
 
 from pyfiglet import figlet_format
 
@@ -16,6 +16,12 @@ import tkinter as tk
 from tkinter import filedialog
 
 
+def is_runnning(app):
+    count = int(subprocess.check_output(["osascript",
+                "-e", "tell application \"System Events\"",
+                "-e", "count (every process whose name is \"" + app + "\")",
+                "-e", "end tell"]).strip())
+    return count > 0
 
 def convert_dicomdir_to_dcm(dicomdir_path, dcm_path):
 
@@ -218,14 +224,18 @@ root.withdraw()
 print(figlet_format("Sybil"))
 print("A validated deep learning model")
 
-# Start up
-print("Starting up...")
-
 if subprocess.check_output("docker ps -q --filter ancestor=mitjclinic/sybil:mgh", shell=True, text=True) == "":
     if os_system == "Windows":
         subprocess.Popen("Docker run -p 127.0.0.1:5000:5000 mitjclinic/sybil:mgh")
     elif os_system == "Darwin":
         appscript.app("Terminal").do_script("Docker run -p 127.0.0.1:5000:5000 mitjclinic/sybil:mgh")
+
+    print("Please wait while the docker container is starting.")
+
+    for i in range(60):
+        print("\rTime remaining: {} seconds.".format(100 - i), end='')
+        time.sleep(1.1)  # :))
+    print("")
 
 # Version check
 if os_system == "Windows":
